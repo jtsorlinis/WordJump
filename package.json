@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "deploy": "tsc -b && vite build && gh-pages -d dist"
+    "deploy": "tsc -b && vite build && gh-pages -d dist --cname wordjump.io"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.4",
