@@ -1,4 +1,11 @@
-import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { bucketClassName } from "../game/feedback";
 import type { Attempt } from "../game/types";
 import DirectionIcon from "./DirectionIcon";
@@ -22,13 +29,13 @@ interface HintRowProps {
 
 function formatDistanceLabel(
   distance: number,
-  direction: Extract<Attempt["direction"], "Earlier" | "Later">
+  direction: Extract<Attempt["direction"], "Earlier" | "Later">,
 ): string {
   return `${distance} words ${direction === "Earlier" ? "before" : "after"}`;
 }
 
 function formatPlaceholderDistanceLabel(
-  direction: Extract<Attempt["direction"], "Earlier" | "Later">
+  direction: Extract<Attempt["direction"], "Earlier" | "Later">,
 ): string {
   return `000 words ${direction === "Earlier" ? "before" : "after"}`;
 }
@@ -51,7 +58,9 @@ function renderHintWord(word: string, targetWord: string): JSX.Element[] {
   return uppercaseWord.split("").map((letter, index) => (
     <span
       key={`${word}-${index}`}
-      className={index < leadingMatchLength ? "hint-letter-match" : "hint-letter"}
+      className={
+        index < leadingMatchLength ? "hint-letter-match" : "hint-letter"
+      }
     >
       {letter}
     </span>
@@ -62,22 +71,27 @@ function renderGuessSlots(
   guess: string,
   knownPrefix: string,
   requiredLength: number,
-  disabled: boolean
+  disabled: boolean,
 ): JSX.Element[] {
   const knownLetters = knownPrefix.toUpperCase();
   const guessedLetters = guess.toUpperCase().slice(0, requiredLength);
-  const activeIndex = !disabled && guess.length < requiredLength ? guess.length : -1;
+  const activeIndex =
+    !disabled && guess.length < requiredLength ? guess.length : -1;
 
   return Array.from({ length: requiredLength }, (_, index) => {
     const isKnownLetter = index < knownLetters.length;
-    const letter = isKnownLetter ? knownLetters[index] : guessedLetters[index] ?? "";
+    const letter = isKnownLetter
+      ? knownLetters[index]
+      : (guessedLetters[index] ?? "");
     const baseClassName = isKnownLetter
       ? "guess-slot guess-slot-known"
       : letter
-      ? "guess-slot filled"
-      : "guess-slot";
+        ? "guess-slot filled"
+        : "guess-slot";
     const className =
-      index === activeIndex ? `${baseClassName} guess-slot-active` : baseClassName;
+      index === activeIndex
+        ? `${baseClassName} guess-slot-active`
+        : baseClassName;
 
     return (
       <span key={`guess-slot-${index}`} className={className}>
@@ -105,7 +119,10 @@ function getKnownPrefix(targetWord: string, attempts: Attempt[]): string {
   let longest = 0;
 
   for (const attempt of attempts) {
-    longest = Math.max(longest, getLeadingMatchLength(attempt.guess, targetWord));
+    longest = Math.max(
+      longest,
+      getLeadingMatchLength(attempt.guess, targetWord),
+    );
   }
 
   return targetWord.slice(0, longest);
@@ -115,22 +132,11 @@ function normalizeAlphabetic(value: string): string {
   return value.replace(/[^a-zA-Z]/g, "").toLowerCase();
 }
 
-function mergeGuessWithPrefix(
-  rawGuess: string,
-  knownPrefix: string,
-  requiredLength: number
-): string {
-  const normalizedGuess = normalizeAlphabetic(rawGuess);
-  const clampedPrefix = knownPrefix.slice(0, requiredLength);
-  const maxTailLength = Math.max(requiredLength - clampedPrefix.length, 0);
-  const tail = normalizedGuess.startsWith(clampedPrefix)
-    ? normalizedGuess.slice(clampedPrefix.length)
-    : normalizedGuess;
-
-  return `${clampedPrefix}${tail.slice(0, maxTailLength)}`;
-}
-
-function HintRow({ attempt, direction, targetWord }: HintRowProps): JSX.Element {
+function HintRow({
+  attempt,
+  direction,
+  targetWord,
+}: HintRowProps): JSX.Element {
   const transitionKey = attempt
     ? `${attempt.guess}:${attempt.distance}:${attempt.direction}`
     : "empty";
@@ -160,7 +166,11 @@ function HintRow({ attempt, direction, targetWord }: HintRowProps): JSX.Element 
 
   return (
     <div className="attempt-row hint-row" aria-live="polite">
-      <span className="attempt-direction hint-direction" aria-label={direction} title={direction}>
+      <span
+        className="attempt-direction hint-direction"
+        aria-label={direction}
+        title={direction}
+      >
         <DirectionIcon direction={direction} />
       </span>
       <span
@@ -201,20 +211,22 @@ function GuessInput({
 }: GuessInputProps): JSX.Element {
   const knownPrefix = useMemo(
     () => getKnownPrefix(targetWord, attempts),
-    [attempts, targetWord]
+    [attempts, targetWord],
   );
-  const [guess, setGuess] = useState(() => knownPrefix);
+  const maxTailLength = Math.max(requiredLength - knownPrefix.length, 0);
+  const [guessTail, setGuessTail] = useState("");
+  const guess = `${knownPrefix}${guessTail}`;
 
   useEffect(() => {
-    setGuess(knownPrefix);
+    setGuessTail("");
   }, [knownPrefix, requiredLength]);
 
   const submitGuess = useCallback((): void => {
     const accepted = onSubmitGuess(guess);
     if (accepted) {
-      setGuess(knownPrefix);
+      setGuessTail("");
     }
-  }, [guess, knownPrefix, onSubmitGuess]);
+  }, [guess, onSubmitGuess]);
 
   function onSubmit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();
@@ -227,7 +239,12 @@ function GuessInput({
     }
 
     function onKeyDown(event: KeyboardEvent): void {
-      if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) {
+      if (
+        event.defaultPrevented ||
+        event.altKey ||
+        event.ctrlKey ||
+        event.metaKey
+      ) {
         return;
       }
 
@@ -241,14 +258,12 @@ function GuessInput({
 
       if (event.key === "Backspace") {
         event.preventDefault();
-        setGuess((current) =>
-          current.length <= knownPrefix.length ? current : current.slice(0, -1)
-        );
+        setGuessTail((current) => current.slice(0, -1));
         return;
       }
 
       if (event.key === "Enter") {
-        if (guess.length <= knownPrefix.length && knownPrefix.length < requiredLength) {
+        if (guessTail.length === 0 && knownPrefix.length < requiredLength) {
           return;
         }
 
@@ -262,8 +277,8 @@ function GuessInput({
       }
 
       event.preventDefault();
-      setGuess((current) => {
-        if (current.length >= requiredLength) {
+      setGuessTail((current) => {
+        if (current.length >= maxTailLength) {
           return current;
         }
 
@@ -275,7 +290,14 @@ function GuessInput({
     return () => {
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [disabled, guess.length, knownPrefix.length, requiredLength, submitGuess]);
+  }, [
+    disabled,
+    guessTail.length,
+    knownPrefix.length,
+    maxTailLength,
+    requiredLength,
+    submitGuess,
+  ]);
 
   return (
     <section className="panel">
@@ -286,10 +308,16 @@ function GuessInput({
       />
 
       <form className="guess-form" onSubmit={onSubmit}>
-        <div className={disabled ? "guess-input-wrap disabled" : "guess-input-wrap"}>
+        <div
+          className={
+            disabled ? "guess-input-wrap disabled" : "guess-input-wrap"
+          }
+        >
           <div
             className="guess-slot-grid"
-            style={{ gridTemplateColumns: `repeat(${requiredLength}, minmax(32px, 52px))` }}
+            style={{
+              gridTemplateColumns: `repeat(${requiredLength}, minmax(32px, 52px))`,
+            }}
             aria-hidden="true"
           >
             {renderGuessSlots(guess, knownPrefix, requiredLength, disabled)}
@@ -299,15 +327,11 @@ function GuessInput({
             autoCapitalize="none"
             spellCheck={false}
             className="guess-input-native"
-            value={guess}
-            maxLength={requiredLength}
+            value={guessTail}
+            maxLength={maxTailLength}
             onChange={(event) =>
-              setGuess(
-                mergeGuessWithPrefix(
-                  event.target.value,
-                  knownPrefix,
-                  requiredLength
-                )
+              setGuessTail(
+                normalizeAlphabetic(event.target.value).slice(0, maxTailLength),
               )
             }
             disabled={disabled}
