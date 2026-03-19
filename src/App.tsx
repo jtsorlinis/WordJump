@@ -387,7 +387,9 @@ function App(): JSX.Element {
         />
 
         <p className="guesses-remaining-text">
-          <strong>{guessesRemaining} attempts remaining</strong>
+          <strong>
+            {guessesRemaining} {guessesRemaining === 1 ? "attempt" : "attempts"} remaining
+          </strong>
         </p>
       </div>
 

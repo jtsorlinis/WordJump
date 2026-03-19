@@ -69,37 +69,81 @@ body {
 }
 
 .header {
+  position: relative;
+  overflow: hidden;
   display: grid;
   gap: 12px;
+  border-color: color-mix(in srgb, var(--accent) 18%, var(--border));
+  background:
+    radial-gradient(circle at 50% -30%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 58%),
+    var(--panel);
+}
+
+.header::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 7%, transparent), transparent 42%);
+  pointer-events: none;
 }
 
 .title-group {
+  position: relative;
+  z-index: 1;
   display: grid;
   justify-items: center;
-  gap: 4px;
+  gap: 8px;
   text-align: center;
 }
 
 .title-row {
   width: 100%;
   display: grid;
-  grid-template-columns: 36px minmax(0, 1fr) 36px;
-  gap: 8px;
+  grid-template-columns: 40px minmax(0, 1fr) 40px;
+  gap: 12px;
   align-items: center;
 }
 
-.title-group h1 {
+.app-title {
   margin: 0;
-  letter-spacing: 0.08em;
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  font-size: clamp(2rem, 7vw, 2.8rem);
-  line-height: 1;
+  font-size: clamp(2.1rem, 7.2vw, 2.95rem);
+  line-height: 0.95;
 }
 
-.title-group p {
+.app-title-word {
+  color: color-mix(in srgb, var(--text) 90%, var(--accent));
+}
+
+.app-title-word-accent {
+  position: relative;
+  color: var(--accent);
+}
+
+.app-title-word-accent::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.05em;
+  height: 0.15em;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  z-index: -1;
+}
+
+.title-caption {
   margin: 0;
+  padding: 6px 0px 0px;
   color: var(--muted);
-  font-size: 0.95rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 .meta-group {
@@ -117,6 +161,15 @@ body {
   display: grid;
   place-items: center;
   font-size: 1rem;
+}
+
+.header .icon-button {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border-color: color-mix(in srgb, var(--accent) 18%, var(--border));
+  background: color-mix(in srgb, var(--panel) 55%, var(--bg-alt));
+  box-shadow: 0 8px 18px rgba(15, 35, 45, 0.08);
 }
 
 .guess-form {
