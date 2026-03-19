@@ -2,7 +2,7 @@ import { getDistanceBucket } from "./feedback";
 import type { Attempt } from "./types";
 
 export const GAME_NAME = "WordJump";
-export const SHARE_URL = "http://wordjump.io/";
+export const SHARE_URL = "https://wordjump.io/";
 
 export function buildEmojiRow(attempts: Attempt[]): string {
   return attempts
