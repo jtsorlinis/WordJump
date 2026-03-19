@@ -213,8 +213,7 @@ body {
 }
 
 .guess-slot-active {
-  border-color: color-mix(in srgb, var(--text) 16%, var(--border));
-  background: color-mix(in srgb, var(--bg-alt) 38%, transparent);
+  box-shadow: inset 0 0 0 2px var(--accent);
 }
 
 .guess-input-wrap:focus-within .guess-slot {
