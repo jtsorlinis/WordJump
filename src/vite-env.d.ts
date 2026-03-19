@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  readonly VITE_LEXIGAP_RANDOM_MODE?: string;
+  readonly VITE_WORDJUMP_RANDOM_MODE?: string;
 }
 
 interface ImportMeta {

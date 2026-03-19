@@ -8,6 +8,6 @@ export default defineConfig(({ command }) => {
       environment: "node",
       include: ["tests/**/*.test.ts"],
     },
-    base: command === "build" ? "/Lexigap/" : undefined,
+    base: command === "build" ? "/WordJump/" : undefined,
   };
 });

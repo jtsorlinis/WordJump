@@ -1,4 +1,4 @@
-import type { GameStatus } from '../game/types';
+import type { GameStatus } from "../game/types";
 
 interface ResultModalProps {
   isOpen: boolean;
@@ -21,26 +21,34 @@ function ResultModal({
   showNewPuzzleAction,
   onClose,
   onShare,
-  onStartNewPuzzle
+  onStartNewPuzzle,
 }: ResultModalProps): JSX.Element | null {
   if (!isOpen) {
     return null;
   }
 
-  const title = status === 'won' ? 'Solved' : 'Out of guesses';
-  const isLoss = status === 'lost';
-  const targetLabel = isLoss ? 'Target word was:' : 'Target word:';
+  const title = status === "won" ? "Solved" : "Out of guesses";
+  const isLoss = status === "lost";
+  const targetLabel = isLoss ? "Target word was:" : "Target word:";
 
   return (
     <div className="modal-backdrop" role="presentation" onClick={onClose}>
-      <div className="modal result-modal" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
+      <div
+        className="modal result-modal"
+        role="dialog"
+        aria-modal="true"
+        onClick={(event) => event.stopPropagation()}
+      >
         <h2 className="result-title">{title}</h2>
         <div className="result-target">
           <p className="result-target-label">{targetLabel}</p>
           <p className="result-target-word">{targetWord.toUpperCase()}</p>
         </div>
         <p className="result-attempts">
-          Attempts <strong>{attemptsUsed}/{maxGuesses}</strong>
+          Attempts{" "}
+          <strong>
+            {attemptsUsed}/{maxGuesses}
+          </strong>
         </p>
 
         <div className="modal-actions result-actions">
@@ -48,7 +56,11 @@ function ResultModal({
             Share
           </button>
           {showNewPuzzleAction ? (
-            <button type="button" className="ghost-button" onClick={onStartNewPuzzle}>
+            <button
+              type="button"
+              className="ghost-button"
+              onClick={onStartNewPuzzle}
+            >
               New Puzzle
             </button>
           ) : (

@@ -1,17 +1,18 @@
 import { bucketClassName } from '../game/feedback';
 import type { Attempt } from '../game/types';
+import DirectionIcon from './DirectionIcon';
 
 interface AttemptRowProps {
   attempt: Attempt;
   attemptNumber: number;
 }
 
-function getDirectionSymbol(direction: Attempt['direction']): string {
+function getDirectionSymbol(direction: Attempt['direction']): JSX.Element | string {
   switch (direction) {
     case 'Earlier':
-      return '↑';
+      return <DirectionIcon direction={direction} />;
     case 'Later':
-      return '↓';
+      return <DirectionIcon direction={direction} />;
     case 'Correct':
       return '✓';
     default:

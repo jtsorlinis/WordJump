@@ -11,6 +11,7 @@ export const GAME_VERSION = 'v2';
 export const PUZZLE_EPOCH = '2026-01-01';
 export const MAX_GUESSES = 10;
 export const MIN_BUCKET_SIZE = 500;
+const PUZZLE_SEED_NAMESPACE = 'wordjump';
 
 export interface CreatePuzzleOptions {
   dictionary: DictionaryModel;
@@ -78,8 +79,8 @@ export function createPuzzleDefinition({
   const normalizedPracticeSeed = practiceSeed?.trim();
   // Seed format is versioned so puzzle generation can evolve without breaking old results.
   const seedKey = isPractice
-    ? `lexigap|practice|${normalizedPracticeSeed}|${GAME_VERSION}`
-    : `lexigap|${melbourneDate}|${GAME_VERSION}`;
+    ? `${PUZZLE_SEED_NAMESPACE}|practice|${normalizedPracticeSeed}|${GAME_VERSION}`
+    : `${PUZZLE_SEED_NAMESPACE}|${melbourneDate}|${GAME_VERSION}`;
 
   const random = createSeededRandom(seedKey);
   const targetBuckets = buildCommonTargetBuckets(dictionary, allowedLengths, commonTargetWords);
@@ -218,7 +219,7 @@ export function submitGuess(state: GameState, rawGuess: string, dictionary: Dict
       state,
       valid: false,
       consumedAttempt: false,
-      error: 'Word is not in the official LexiGap dictionary.'
+      error: 'Word is not in the official WordJump dictionary.'
     };
   }
 

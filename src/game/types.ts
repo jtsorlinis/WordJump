@@ -73,7 +73,7 @@ export interface DailyHistoryEntry {
   emojiRow: string;
 }
 
-export interface LexiGapStats {
+export interface WordJumpStats {
   totalPlayed: number;
   totalWins: number;
   currentStreak: number;

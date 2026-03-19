@@ -1,8 +1,8 @@
-import type { LexiGapStats } from '../game/types';
+import type { WordJumpStats } from '../game/types';
 
 interface StatsModalProps {
   isOpen: boolean;
-  stats: LexiGapStats;
+  stats: WordJumpStats;
   onClose: () => void;
 }
 

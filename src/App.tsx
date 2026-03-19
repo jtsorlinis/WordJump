@@ -28,7 +28,8 @@ import {
 } from "./game/puzzle";
 import type { Attempt, GameState, GameStatus } from "./game/types";
 
-const RANDOM_MODE_ENABLED = import.meta.env.VITE_LEXIGAP_RANDOM_MODE === "true";
+const RANDOM_MODE_ENABLED =
+  import.meta.env.VITE_WORDJUMP_RANDOM_MODE === "true";
 const RESULT_MODAL_DELAY_MS = 500;
 const WIN_RESULT_MODAL_DELAY_MS = 1000;
 

@@ -1,6 +1,6 @@
-import type { DailyHistoryEntry, LexiGapStats } from './types';
+import type { DailyHistoryEntry, WordJumpStats } from './types';
 
-export function createEmptyStats(): LexiGapStats {
+export function createEmptyStats(): WordJumpStats {
   return {
     totalPlayed: 0,
     totalWins: 0,
@@ -20,7 +20,7 @@ export interface ApplyResultInput {
   emojiRow: string;
 }
 
-export function applyResultToStats(current: LexiGapStats, input: ApplyResultInput): LexiGapStats {
+export function applyResultToStats(current: WordJumpStats, input: ApplyResultInput): WordJumpStats {
   const historyKey = String(input.puzzleNumber);
 
   if (current.historyByPuzzle[historyKey]) {

@@ -1,7 +1,7 @@
 import { createEmptyStats } from './stats';
-import type { GameSnapshot, LexiGapStats, PuzzleDefinition } from './types';
+import type { GameSnapshot, PuzzleDefinition, WordJumpStats } from './types';
 
-const NAMESPACE = 'lexigap:v1';
+const NAMESPACE = 'wordjump:v1';
 const STATS_KEY = `${NAMESPACE}:stats`;
 const THEME_KEY = `${NAMESPACE}:theme`;
 const HELP_SEEN_KEY = `${NAMESPACE}:help_seen`;
@@ -55,11 +55,11 @@ export function saveGameSnapshot(storageKey: string, snapshot: GameSnapshot): vo
   writeJson(storageKey, snapshot);
 }
 
-export function loadStats(): LexiGapStats {
-  return readJson<LexiGapStats>(STATS_KEY) ?? createEmptyStats();
+export function loadStats(): WordJumpStats {
+  return readJson<WordJumpStats>(STATS_KEY) ?? createEmptyStats();
 }
 
-export function saveStats(stats: LexiGapStats): void {
+export function saveStats(stats: WordJumpStats): void {
   writeJson(STATS_KEY, stats);
 }
 

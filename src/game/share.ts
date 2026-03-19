@@ -1,8 +1,8 @@
 import { getDistanceBucket } from "./feedback";
 import type { Attempt } from "./types";
 
-export const GAME_NAME = "LexiGap";
-export const SHARE_URL = "https://jtsorlinis.github.io/Lexigap/";
+export const GAME_NAME = "WordJump";
+export const SHARE_URL = "https://jtsorlinis.github.io/WordJump/";
 
 export function buildEmojiRow(attempts: Attempt[]): string {
   return attempts

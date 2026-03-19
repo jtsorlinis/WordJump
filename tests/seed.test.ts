@@ -3,7 +3,7 @@ import { createSeededRandom, hashStringToSeed } from '../src/game/seed';
 
 describe('seed', () => {
   it('produces deterministic hash values', () => {
-    expect(hashStringToSeed('lexigap|2026-02-25|v1')).toBe(hashStringToSeed('lexigap|2026-02-25|v1'));
+    expect(hashStringToSeed('wordjump|2026-02-25|v1')).toBe(hashStringToSeed('wordjump|2026-02-25|v1'));
   });
 
   it('produces deterministic random sequences for the same seed', () => {

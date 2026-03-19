@@ -42,7 +42,7 @@ describe('share', () => {
     const text = buildShareText(54, attempts);
     const [header, row, playLine] = text.split('\n').filter(Boolean);
 
-    expect(header).toBe('LexiGap #54');
+    expect(header).toBe('WordJump #54');
     expect(row).toMatch(/^[⬛🟥🟧🟨🟩]+$/u);
     expect(playLine).toBe(`Play here: ${SHARE_URL}`);
     expect(text.toLowerCase()).not.toContain('apple');

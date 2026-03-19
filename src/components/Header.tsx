@@ -18,7 +18,7 @@ function Header({
           <button type="button" onClick={onOpenStats} className="ghost-button icon-button" aria-label="Open stats" title="Stats">
             📊
           </button>
-          <h1>LexiGap</h1>
+          <h1>WordJump</h1>
           <button type="button" onClick={onOpenHelp} className="ghost-button icon-button" aria-label="Open help" title="Help">
             ❓
           </button>

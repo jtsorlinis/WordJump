@@ -1,6 +1,7 @@
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { bucketClassName } from "../game/feedback";
 import type { Attempt } from "../game/types";
+import DirectionIcon from "./DirectionIcon";
 
 interface GuessInputProps {
   requiredLength: number;
@@ -15,8 +16,21 @@ interface GuessInputProps {
 
 interface HintRowProps {
   attempt: Attempt | null;
-  directionSymbol: "↓" | "↑";
+  direction: Extract<Attempt["direction"], "Earlier" | "Later">;
   targetWord: string;
+}
+
+function formatDistanceLabel(
+  distance: number,
+  direction: Extract<Attempt["direction"], "Earlier" | "Later">
+): string {
+  return `${distance} words ${direction === "Earlier" ? "before" : "after"}`;
+}
+
+function formatPlaceholderDistanceLabel(
+  direction: Extract<Attempt["direction"], "Earlier" | "Later">
+): string {
+  return `000 words ${direction === "Earlier" ? "before" : "after"}`;
 }
 
 function getLeadingMatchLength(word: string, targetWord: string): number {
@@ -116,7 +130,7 @@ function mergeGuessWithPrefix(
   return `${clampedPrefix}${tail.slice(0, maxTailLength)}`;
 }
 
-function HintRow({ attempt, directionSymbol, targetWord }: HintRowProps): JSX.Element {
+function HintRow({ attempt, direction, targetWord }: HintRowProps): JSX.Element {
   const transitionKey = attempt
     ? `${attempt.guess}:${attempt.distance}:${attempt.direction}`
     : "empty";
@@ -146,8 +160,8 @@ function HintRow({ attempt, directionSymbol, targetWord }: HintRowProps): JSX.El
 
   return (
     <div className="attempt-row hint-row" aria-live="polite">
-      <span className="attempt-direction hint-direction">
-        {directionSymbol}
+      <span className="attempt-direction hint-direction" aria-label={direction} title={direction}>
+        <DirectionIcon direction={direction} />
       </span>
       <span
         className={
@@ -167,7 +181,9 @@ function HintRow({ attempt, directionSymbol, targetWord }: HintRowProps): JSX.El
             : "hint-distance placeholder"
         }
       >
-        {attempt ? `${attempt.distance} words away` : "000 words away"}
+        {attempt
+          ? formatDistanceLabel(attempt.distance, direction)
+          : formatPlaceholderDistanceLabel(direction)}
       </span>
     </div>
   );
@@ -265,7 +281,7 @@ function GuessInput({
     <section className="panel">
       <HintRow
         attempt={closestDownAttempt}
-        directionSymbol="↓"
+        direction="Later"
         targetWord={targetWord}
       />
 
@@ -302,7 +318,7 @@ function GuessInput({
 
       <HintRow
         attempt={closestUpAttempt}
-        directionSymbol="↑"
+        direction="Earlier"
         targetWord={targetWord}
       />
 
