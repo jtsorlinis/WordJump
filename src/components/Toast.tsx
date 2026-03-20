@@ -7,7 +7,11 @@ function Toast({ message }: ToastProps): JSX.Element | null {
     return null;
   }
 
-  return <div className="toast">{message}</div>;
+  return (
+    <div className="toast" role="status" aria-live="polite">
+      {message}
+    </div>
+  );
 }
 
 export default Toast;

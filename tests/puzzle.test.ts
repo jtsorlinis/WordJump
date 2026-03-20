@@ -149,6 +149,24 @@ describe('puzzle', () => {
     expect(withinBounds.state.attempts).toHaveLength(3);
   });
 
+  it('rejects guesses that match the current visible upper/lower bounds', () => {
+    const model = createDictionaryModel(TEST_WORDS, [5]);
+    const initial = createInitialGameState(makePuzzle('mango'), 8);
+
+    const afterLowerBound = submitGuess(initial, 'joker', model).state;
+    const boundedState = submitGuess(afterLowerBound, 'olive', model).state;
+
+    const repeatedLowerBound = submitGuess(boundedState, 'joker', model);
+    expect(repeatedLowerBound.valid).toBe(false);
+    expect(repeatedLowerBound.consumedAttempt).toBe(false);
+    expect(repeatedLowerBound.state.attempts).toHaveLength(2);
+
+    const repeatedUpperBound = submitGuess(boundedState, 'olive', model);
+    expect(repeatedUpperBound.valid).toBe(false);
+    expect(repeatedUpperBound.consumedAttempt).toBe(false);
+    expect(repeatedUpperBound.state.attempts).toHaveLength(2);
+  });
+
   it('supports win condition and max-guess loss flow', () => {
     const model = createDictionaryModel(TEST_WORDS, [5]);
 
@@ -161,7 +179,7 @@ describe('puzzle', () => {
     expect(winningGuess.attempts).toHaveLength(2);
 
     const loseState = createInitialGameState(makePuzzle('apple'), 2);
-    const firstLossGuess = submitGuess(loseState, 'berry', model).state;
+    const firstLossGuess = submitGuess(loseState, 'delta', model).state;
     expect(firstLossGuess.status).toBe('playing');
 
     const secondLossGuess = submitGuess(firstLossGuess, 'berry', model).state;

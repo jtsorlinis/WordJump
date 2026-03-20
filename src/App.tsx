@@ -97,6 +97,7 @@ function App(): JSX.Element {
   const [resultOpen, setResultOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [invalidSubmissionCount, setInvalidSubmissionCount] = useState(0);
   const resultRevealTimeoutRef = useRef<number | null>(null);
 
   const [gameState, setGameState] = useState<GameState>(() => {
@@ -250,12 +251,13 @@ function App(): JSX.Element {
     });
   }
 
-  function onSubmitGuess(rawGuess: string): boolean {
+  function onSubmitGuess(rawGuess: string): Attempt | null {
     const result = submitGuess(gameState, rawGuess, dictionaryModel);
 
     if (!result.valid) {
       setErrorMessage(result.error ?? "Invalid guess.");
-      return false;
+      setInvalidSubmissionCount((current) => current + 1);
+      return null;
     }
 
     const nextState = result.state;
@@ -276,7 +278,7 @@ function App(): JSX.Element {
       );
     }
 
-    return true;
+    return result.attempt ?? null;
   }
 
   async function shareResult(): Promise<void> {
@@ -364,7 +366,6 @@ function App(): JSX.Element {
   }, [gameState.attempts]);
 
   const guessesRemaining = gameState.maxGuesses - gameState.attempts.length;
-
   return (
     <main className="app-shell">
       <div className="main-content">
@@ -380,6 +381,7 @@ function App(): JSX.Element {
           attempts={gameState.attempts}
           disabled={gameState.status !== "playing"}
           errorMessage={errorMessage}
+          invalidSubmissionCount={invalidSubmissionCount}
           closestDownAttempt={closestDownAttempt}
           closestUpAttempt={closestUpAttempt}
           targetWord={gameState.puzzle.targetWord}
@@ -388,7 +390,8 @@ function App(): JSX.Element {
 
         <p className="guesses-remaining-text">
           <strong>
-            {guessesRemaining} {guessesRemaining === 1 ? "attempt" : "attempts"} remaining
+            {guessesRemaining}{" "}
+            {guessesRemaining === 1 ? "attempt" : "attempts"} remaining
           </strong>
         </p>
       </div>

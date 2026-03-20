@@ -10,15 +10,28 @@ import { bucketClassName } from "../game/feedback";
 import type { Attempt } from "../game/types";
 import DirectionIcon from "./DirectionIcon";
 
+interface FlyingGuess {
+  id: number;
+  guess: string;
+  knownPrefix: string;
+  direction: Attempt["direction"];
+  top: number;
+  left: number;
+  width: number;
+  deltaX: number;
+  deltaY: number;
+}
+
 interface GuessInputProps {
   requiredLength: number;
   attempts: Attempt[];
   disabled: boolean;
   errorMessage: string | null;
+  invalidSubmissionCount: number;
   closestDownAttempt: Attempt | null;
   closestUpAttempt: Attempt | null;
   targetWord: string;
-  onSubmitGuess: (guess: string) => boolean;
+  onSubmitGuess: (guess: string) => Attempt | null;
 }
 
 interface HintRowProps {
@@ -204,29 +217,95 @@ function GuessInput({
   attempts,
   disabled,
   errorMessage,
+  invalidSubmissionCount,
   closestDownAttempt,
   closestUpAttempt,
   targetWord,
   onSubmitGuess,
 }: GuessInputProps): JSX.Element {
+  const panelRef = useRef<HTMLElement>(null);
+  const inputGridRef = useRef<HTMLDivElement>(null);
+  const laterHintRef = useRef<HTMLDivElement>(null);
+  const earlierHintRef = useRef<HTMLDivElement>(null);
+  const flyingGuessIdRef = useRef(0);
   const knownPrefix = useMemo(
     () => getKnownPrefix(targetWord, attempts),
     [attempts, targetWord],
   );
   const maxTailLength = Math.max(requiredLength - knownPrefix.length, 0);
   const [guessTail, setGuessTail] = useState("");
+  const [isInvalidFeedbackActive, setIsInvalidFeedbackActive] = useState(false);
+  const [flyingGuess, setFlyingGuess] = useState<FlyingGuess | null>(null);
   const guess = `${knownPrefix}${guessTail}`;
+
+  function triggerFlyingGuessFeedback(
+    submittedGuess: string,
+    direction: Attempt["direction"],
+  ): void {
+    const panelRect = panelRef.current?.getBoundingClientRect();
+    const sourceRect = inputGridRef.current?.getBoundingClientRect();
+
+    if (!panelRect || !sourceRect) {
+      return;
+    }
+
+    const targetElement =
+      direction === "Later"
+        ? laterHintRef.current
+        : direction === "Earlier"
+          ? earlierHintRef.current
+          : null;
+    const targetRect = targetElement?.getBoundingClientRect();
+    const nextId = flyingGuessIdRef.current + 1;
+    flyingGuessIdRef.current = nextId;
+
+    setFlyingGuess({
+      id: nextId,
+      guess: submittedGuess,
+      knownPrefix,
+      direction,
+      top: sourceRect.top - panelRect.top,
+      left: sourceRect.left - panelRect.left,
+      width: sourceRect.width,
+      deltaX: targetRect
+        ? targetRect.left +
+          targetRect.width / 2 -
+          (sourceRect.left + sourceRect.width / 2)
+        : 0,
+      deltaY: targetRect
+        ? targetRect.top +
+          targetRect.height / 2 -
+          (sourceRect.top + sourceRect.height / 2)
+        : 0,
+    });
+  }
+
+  useEffect(() => {
+    if (invalidSubmissionCount === 0) {
+      return;
+    }
+
+    setIsInvalidFeedbackActive(true);
+    const timeout = window.setTimeout(() => {
+      setIsInvalidFeedbackActive(false);
+    }, 420);
+
+    return () => {
+      window.clearTimeout(timeout);
+    };
+  }, [invalidSubmissionCount]);
 
   useEffect(() => {
     setGuessTail("");
   }, [knownPrefix, requiredLength]);
 
   const submitGuess = useCallback((): void => {
-    const accepted = onSubmitGuess(guess);
-    if (accepted) {
+    const attempt = onSubmitGuess(guess);
+    if (attempt) {
+      triggerFlyingGuessFeedback(guess, attempt.direction);
       setGuessTail("");
     }
-  }, [guess, onSubmitGuess]);
+  }, [guess, knownPrefix, onSubmitGuess]);
 
   function onSubmit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();
@@ -263,10 +342,6 @@ function GuessInput({
       }
 
       if (event.key === "Enter") {
-        if (guessTail.length === 0 && knownPrefix.length < requiredLength) {
-          return;
-        }
-
         event.preventDefault();
         submitGuess();
         return;
@@ -299,13 +374,19 @@ function GuessInput({
     submitGuess,
   ]);
 
+  const invalidFeedbackClassName = isInvalidFeedbackActive
+    ? ` invalid-feedback invalid-feedback-${invalidSubmissionCount % 2}`
+    : "";
+
   return (
-    <section className="panel">
-      <HintRow
-        attempt={closestDownAttempt}
-        direction="Later"
-        targetWord={targetWord}
-      />
+    <section ref={panelRef} className="panel guess-panel">
+      <div ref={laterHintRef}>
+        <HintRow
+          attempt={closestDownAttempt}
+          direction="Later"
+          targetWord={targetWord}
+        />
+      </div>
 
       <form className="guess-form" onSubmit={onSubmit}>
         <div
@@ -314,7 +395,8 @@ function GuessInput({
           }
         >
           <div
-            className="guess-slot-grid"
+            ref={inputGridRef}
+            className={`guess-slot-grid${invalidFeedbackClassName}`}
             style={{
               gridTemplateColumns: `repeat(${requiredLength}, minmax(32px, 52px))`,
             }}
@@ -340,11 +422,41 @@ function GuessInput({
         </div>
       </form>
 
-      <HintRow
-        attempt={closestUpAttempt}
-        direction="Earlier"
-        targetWord={targetWord}
-      />
+      {flyingGuess ? (
+        <div
+          key={flyingGuess.id}
+          className={`guess-slot-grid flying-guess flying-guess-${flyingGuess.direction.toLowerCase()}`}
+          style={{
+            top: `${flyingGuess.top}px`,
+            left: `${flyingGuess.left}px`,
+            width: `${flyingGuess.width}px`,
+            gridTemplateColumns: `repeat(${requiredLength}, minmax(32px, 52px))`,
+            ["--flight-x" as string]: `${flyingGuess.deltaX}px`,
+            ["--flight-y" as string]: `${flyingGuess.deltaY}px`,
+          }}
+          onAnimationEnd={() => {
+            setFlyingGuess((current) =>
+              current?.id === flyingGuess.id ? null : current,
+            );
+          }}
+          aria-hidden="true"
+        >
+          {renderGuessSlots(
+            flyingGuess.guess,
+            flyingGuess.knownPrefix,
+            requiredLength,
+            true,
+          )}
+        </div>
+      ) : null}
+
+      <div ref={earlierHintRef}>
+        <HintRow
+          attempt={closestUpAttempt}
+          direction="Earlier"
+          targetWord={targetWord}
+        />
+      </div>
 
       {errorMessage ? <p className="error-text">{errorMessage}</p> : null}
     </section>

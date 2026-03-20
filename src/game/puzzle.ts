@@ -1,17 +1,22 @@
-import { DEFAULT_WORD_LENGTHS } from './buckets';
-import { TOP_COMMON_WORDS } from './commonTargets';
-import { getDirection, getDistanceBucket } from './feedback';
-import { normalizeWord } from './normalize';
-import { rankDistance } from './ranking';
-import { createSeededRandom, hashStringToSeed } from './seed';
-import { daysBetweenIsoDates, getMelbourneIsoDate } from './timezone';
-import type { DictionaryModel, GameState, PuzzleDefinition, SubmitGuessResult } from './types';
+import { DEFAULT_WORD_LENGTHS } from "./buckets";
+import { TOP_COMMON_WORDS } from "./commonTargets";
+import { getDirection, getDistanceBucket } from "./feedback";
+import { normalizeWord } from "./normalize";
+import { rankDistance } from "./ranking";
+import { createSeededRandom, hashStringToSeed } from "./seed";
+import { daysBetweenIsoDates, getMelbourneIsoDate } from "./timezone";
+import type {
+  DictionaryModel,
+  GameState,
+  PuzzleDefinition,
+  SubmitGuessResult,
+} from "./types";
 
-export const GAME_VERSION = 'v2';
-export const PUZZLE_EPOCH = '2026-01-01';
+export const GAME_VERSION = "v2";
+export const PUZZLE_EPOCH = "2026-01-01";
 export const MAX_GUESSES = 10;
 export const MIN_BUCKET_SIZE = 500;
-const PUZZLE_SEED_NAMESPACE = 'wordjump';
+const PUZZLE_SEED_NAMESPACE = "wordjump";
 
 export interface CreatePuzzleOptions {
   dictionary: DictionaryModel;
@@ -26,9 +31,11 @@ function pickLength(
   targetBuckets: Record<number, string[]>,
   allowedLengths: readonly number[],
   minBucketSize: number,
-  random: () => number
+  random: () => number,
 ): number {
-  const preferred = allowedLengths.filter((length) => (targetBuckets[length]?.length ?? 0) >= minBucketSize);
+  const preferred = allowedLengths.filter(
+    (length) => (targetBuckets[length]?.length ?? 0) >= minBucketSize,
+  );
 
   if (preferred.length > 0) {
     return preferred[Math.floor(random() * preferred.length)];
@@ -36,10 +43,16 @@ function pickLength(
 
   const fallback = [...allowedLengths]
     .filter((length) => (targetBuckets[length]?.length ?? 0) > 0)
-    .sort((left, right) => (targetBuckets[right]?.length ?? 0) - (targetBuckets[left]?.length ?? 0));
+    .sort(
+      (left, right) =>
+        (targetBuckets[right]?.length ?? 0) -
+        (targetBuckets[left]?.length ?? 0),
+    );
 
   if (fallback.length === 0) {
-    throw new Error('No common target words available for the configured lengths.');
+    throw new Error(
+      "No common target words available for the configured lengths.",
+    );
   }
 
   return fallback[Math.floor(random() * fallback.length)];
@@ -48,19 +61,21 @@ function pickLength(
 function buildCommonTargetBuckets(
   dictionary: DictionaryModel,
   allowedLengths: readonly number[],
-  commonTargetWords: readonly string[]
+  commonTargetWords: readonly string[],
 ): Record<number, string[]> {
   const commonTargetSet = new Set(
     commonTargetWords
       .map((word) => normalizeWord(word))
-      .filter((word) => word.length > 0)
+      .filter((word) => word.length > 0),
   );
 
   const targetBuckets: Record<number, string[]> = {};
 
   for (const length of allowedLengths) {
     const guessBucket = dictionary.buckets[length] ?? [];
-    targetBuckets[length] = guessBucket.filter((word) => commonTargetSet.has(word));
+    targetBuckets[length] = guessBucket.filter((word) =>
+      commonTargetSet.has(word),
+    );
   }
 
   return targetBuckets;
@@ -72,10 +87,11 @@ export function createPuzzleDefinition({
   allowedLengths = DEFAULT_WORD_LENGTHS,
   minBucketSize = MIN_BUCKET_SIZE,
   practiceSeed,
-  commonTargetWords = TOP_COMMON_WORDS
+  commonTargetWords = TOP_COMMON_WORDS,
 }: CreatePuzzleOptions): PuzzleDefinition {
   const melbourneDate = getMelbourneIsoDate(referenceDate);
-  const isPractice = typeof practiceSeed === 'string' && practiceSeed.trim().length > 0;
+  const isPractice =
+    typeof practiceSeed === "string" && practiceSeed.trim().length > 0;
   const normalizedPracticeSeed = practiceSeed?.trim();
   // Seed format is versioned so puzzle generation can evolve without breaking old results.
   const seedKey = isPractice
@@ -83,12 +99,23 @@ export function createPuzzleDefinition({
     : `${PUZZLE_SEED_NAMESPACE}|${melbourneDate}|${GAME_VERSION}`;
 
   const random = createSeededRandom(seedKey);
-  const targetBuckets = buildCommonTargetBuckets(dictionary, allowedLengths, commonTargetWords);
-  const requiredLength = pickLength(targetBuckets, allowedLengths, minBucketSize, random);
+  const targetBuckets = buildCommonTargetBuckets(
+    dictionary,
+    allowedLengths,
+    commonTargetWords,
+  );
+  const requiredLength = pickLength(
+    targetBuckets,
+    allowedLengths,
+    minBucketSize,
+    random,
+  );
   const targetBucket = targetBuckets[requiredLength] ?? [];
 
   if (targetBucket.length === 0) {
-    throw new Error(`No common target words available for required length ${requiredLength}.`);
+    throw new Error(
+      `No common target words available for required length ${requiredLength}.`,
+    );
   }
 
   const targetWord = targetBucket[Math.floor(random() * targetBucket.length)];
@@ -104,30 +131,33 @@ export function createPuzzleDefinition({
     targetWord,
     seedKey,
     isPractice,
-    practiceSeed: normalizedPracticeSeed
+    practiceSeed: normalizedPracticeSeed,
   };
 }
 
-export function createInitialGameState(puzzle: PuzzleDefinition, maxGuesses = MAX_GUESSES): GameState {
+export function createInitialGameState(
+  puzzle: PuzzleDefinition,
+  maxGuesses = MAX_GUESSES,
+): GameState {
   return {
     puzzle,
     maxGuesses,
     attempts: [],
-    status: 'playing'
+    status: "playing",
   };
 }
 
 export function hydrateGameState(
   puzzle: PuzzleDefinition,
   maxGuesses: number,
-  attempts: GameState['attempts'],
-  status: GameState['status']
+  attempts: GameState["attempts"],
+  status: GameState["status"],
 ): GameState {
   return {
     puzzle,
     maxGuesses,
     attempts,
-    status
+    status,
   };
 }
 
@@ -135,7 +165,7 @@ function isAlphabeticWord(value: string): boolean {
   return /^[a-zA-Z]+$/.test(value);
 }
 
-function getGuessBounds(attempts: GameState['attempts']): {
+function getGuessBounds(attempts: GameState["attempts"]): {
   lowerBoundRank?: number;
   upperBoundRank?: number;
 } {
@@ -143,14 +173,14 @@ function getGuessBounds(attempts: GameState['attempts']): {
   let upperBoundRank: number | undefined;
 
   for (const attempt of attempts) {
-    if (attempt.direction === 'Later') {
+    if (attempt.direction === "Later") {
       if (lowerBoundRank === undefined || attempt.guessRank > lowerBoundRank) {
         lowerBoundRank = attempt.guessRank;
       }
       continue;
     }
 
-    if (attempt.direction === 'Earlier') {
+    if (attempt.direction === "Earlier") {
       if (upperBoundRank === undefined || attempt.guessRank < upperBoundRank) {
         upperBoundRank = attempt.guessRank;
       }
@@ -160,13 +190,17 @@ function getGuessBounds(attempts: GameState['attempts']): {
   return { lowerBoundRank, upperBoundRank };
 }
 
-export function submitGuess(state: GameState, rawGuess: string, dictionary: DictionaryModel): SubmitGuessResult {
-  if (state.status !== 'playing') {
+export function submitGuess(
+  state: GameState,
+  rawGuess: string,
+  dictionary: DictionaryModel,
+): SubmitGuessResult {
+  if (state.status !== "playing") {
     return {
       state,
       valid: false,
       consumedAttempt: false,
-      error: 'This puzzle is already complete.'
+      error: "This puzzle is already complete.",
     };
   }
 
@@ -177,7 +211,7 @@ export function submitGuess(state: GameState, rawGuess: string, dictionary: Dict
       state,
       valid: false,
       consumedAttempt: false,
-      error: 'Enter a guess first.'
+      error: "Enter a guess first.",
     };
   }
 
@@ -186,7 +220,7 @@ export function submitGuess(state: GameState, rawGuess: string, dictionary: Dict
       state,
       valid: false,
       consumedAttempt: false,
-      error: 'Use alphabetic letters only.'
+      error: "Use alphabetic letters only.",
     };
   }
 
@@ -197,7 +231,7 @@ export function submitGuess(state: GameState, rawGuess: string, dictionary: Dict
       state,
       valid: false,
       consumedAttempt: false,
-      error: `Use exactly ${state.puzzle.requiredLength} letters.`
+      error: `Use exactly ${state.puzzle.requiredLength} letters.`,
     };
   }
 
@@ -208,7 +242,7 @@ export function submitGuess(state: GameState, rawGuess: string, dictionary: Dict
       state,
       valid: false,
       consumedAttempt: false,
-      error: 'This puzzle bucket is unavailable.'
+      error: "This puzzle bucket is unavailable.",
     };
   }
 
@@ -219,7 +253,7 @@ export function submitGuess(state: GameState, rawGuess: string, dictionary: Dict
       state,
       valid: false,
       consumedAttempt: false,
-      error: 'Word is not in the official WordJump dictionary.'
+      error: "Word is not in the official WordJump dictionary.",
     };
   }
 
@@ -230,7 +264,7 @@ export function submitGuess(state: GameState, rawGuess: string, dictionary: Dict
       state,
       valid: false,
       consumedAttempt: false,
-      error: 'Target word is missing from dictionary bucket.'
+      error: "Target word is missing from dictionary bucket.",
     };
   }
 
@@ -238,23 +272,23 @@ export function submitGuess(state: GameState, rawGuess: string, dictionary: Dict
   const { lowerBoundRank, upperBoundRank } = getGuessBounds(state.attempts);
   const bucketWords = dictionary.buckets[state.puzzle.requiredLength] ?? [];
 
-  if (lowerBoundRank !== undefined && guessRank < lowerBoundRank) {
-    const lowerBoundWord = bucketWords[lowerBoundRank] ?? 'known lower bound';
+  if (lowerBoundRank !== undefined && guessRank <= lowerBoundRank) {
+    const lowerBoundWord = bucketWords[lowerBoundRank] ?? "known lower bound";
     return {
       state,
       valid: false,
       consumedAttempt: false,
-      error: `Guess is outside your current range. Try a word after ${lowerBoundWord.toUpperCase()}.`
+      error: `Try a word after ${lowerBoundWord.toUpperCase()}.`,
     };
   }
 
-  if (upperBoundRank !== undefined && guessRank > upperBoundRank) {
-    const upperBoundWord = bucketWords[upperBoundRank] ?? 'known upper bound';
+  if (upperBoundRank !== undefined && guessRank >= upperBoundRank) {
+    const upperBoundWord = bucketWords[upperBoundRank] ?? "known upper bound";
     return {
       state,
       valid: false,
       consumedAttempt: false,
-      error: `Guess is outside your current range. Try a word before ${upperBoundWord.toUpperCase()}.`
+      error: `Try a word before ${upperBoundWord.toUpperCase()}.`,
     };
   }
 
@@ -269,26 +303,26 @@ export function submitGuess(state: GameState, rawGuess: string, dictionary: Dict
     direction,
     guessRank,
     targetRank,
-    bucket
+    bucket,
   };
 
   const attempts = [...state.attempts, attempt];
-  let status: GameState['status'] = 'playing';
+  let status: GameState["status"] = "playing";
 
   if (distance === 0) {
-    status = 'won';
+    status = "won";
   } else if (attempts.length >= state.maxGuesses) {
-    status = 'lost';
+    status = "lost";
   }
 
   return {
     state: {
       ...state,
       attempts,
-      status
+      status,
     },
     valid: true,
     consumedAttempt: true,
-    attempt
+    attempt,
   };
 }

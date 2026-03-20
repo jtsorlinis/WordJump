@@ -30,6 +30,9 @@ function ResultModal({
   const title = status === "won" ? "Solved" : "Out of guesses";
   const isLoss = status === "lost";
   const targetLabel = isLoss ? "Target word was:" : "Target word:";
+  const titleClassName = isLoss
+    ? "result-title result-title-loss"
+    : "result-title result-title-win";
 
   return (
     <div className="modal-backdrop" role="presentation" onClick={onClose}>
@@ -39,7 +42,7 @@ function ResultModal({
         aria-modal="true"
         onClick={(event) => event.stopPropagation()}
       >
-        <h2 className="result-title">{title}</h2>
+        <h2 className={titleClassName}>{title}</h2>
         <div className="result-target">
           <p className="result-target-label">{targetLabel}</p>
           <p className="result-target-word">{targetWord.toUpperCase()}</p>
